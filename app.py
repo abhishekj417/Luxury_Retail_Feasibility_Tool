@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import numpy_financial as npf
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
@@ -589,7 +590,7 @@ with tab3:
                 avg_daily_revenue_base = daily_footfall * (conversion_rate/100) * blended_avg_txn
 
                 peak_daily_revenue = avg_daily_revenue_base * peak_revenue_multiplier
-                nonpeak_daily_revenue = avg_daily_revenue_base * ((30 - peak_days * peak_revenue_multiplier) / nonpeak_days)
+                nonpeak_daily_revenue = avg_daily_revenue_base * ((30 - peak_days * peak_revenue_multiplier) / nonpeak_days) if nonpeak_days > 0 else 0
 
                 monthly_revenue_base = (peak_daily_revenue * peak_days + 
                                        nonpeak_daily_revenue * nonpeak_days)
@@ -1065,14 +1066,14 @@ with tab4:
                 breakeven_month = row['Month']
                 break
 
-        # 2. NPV calculation
+        # 2. NPV calculation - FIX: Using numpy_financial instead of numpy
         cash_flows = [-(total_capex + security_deposit + total_initial_inventory)]
         cash_flows.extend(df['Free_Cash_Flow'].values)
-        npv = np.npv(discount_rate/100/12, cash_flows)
+        npv = npf.npv(discount_rate/100/12, cash_flows)
 
-        # 3. IRR calculation
+        # 3. IRR calculation - FIX: Using numpy_financial instead of numpy
         try:
-            irr_monthly = np.irr(cash_flows)
+            irr_monthly = npf.irr(cash_flows)
             irr_annual = (1 + irr_monthly) ** 12 - 1
             irr_annual_pct = irr_annual * 100
         except:
@@ -1310,9 +1311,9 @@ with tab4:
                 adjusted_cash_flows.append(adj_fcf)
 
             try:
-                adj_irr_monthly = np.irr(adjusted_cash_flows)
+                adj_irr_monthly = npf.irr(adjusted_cash_flows)
                 adj_irr_annual = ((1 + adj_irr_monthly) ** 12 - 1) * 100
-                adj_npv = np.npv(discount_rate/100/12, adjusted_cash_flows)
+                adj_npv = npf.npv(discount_rate/100/12, adjusted_cash_flows)
 
                 col1, col2 = st.columns(2)
 
